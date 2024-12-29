@@ -36,7 +36,7 @@ WHERE _order_ = 1
 
 SELECT  
 	claimNumber,
-	managerCode
+	managerCode,
 	managerTitle,
 	manager,
 	supervisorCode,
