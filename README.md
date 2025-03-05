@@ -3,7 +3,7 @@ Welcome to my SQL Data Analysis repository! This space showcases a collection of
 
 Projects
   -Insurance:
-    At our Insurance company, the examiners are tasked with regularly using the Reserving Tool to help them estimate how much a give claim is going to cost the company.
+    At our Insurance company, the examiners are tasked with regularly using the Reserving Tool to help them estimate how much claim is going to cost the company.
     Our job is to determine how long an examiner has until they are required to use the reserving tool,  and if they are already past their due date, how many days they have been overdue. This needs to be done for all the claims assigned to all of our examiners.
      Key Takeaways: 
      -The procedure identifies outstanding claim reserves that need publication.
