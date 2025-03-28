@@ -13,9 +13,9 @@ Projects
      -Ensures only relevant claims are retrieved for specified offices.
 
 
-##1. Stored Procedure: Get Negative Reserve Type
-
-	`CREATE PROCEDURE SPGetNegativeReserveType
+## 1. Stored Procedure: Get Negative Reserve Type
+```
+ CREATE PROCEDURE SPGetNegativeReserveType
  @varNegativeReserveCount INT,
  @varReserveBucket VARCHAR(20) = NULL,
  @varMaximumAverageAmount FLOAT = NULL
@@ -33,4 +33,33 @@ BEGIN
         AND (@varReserveBucket IS NULL OR reserveBucket = @varReserveBucket)
         AND (@varMaximumAverageAmount IS NULL OR negativeReserveAverage <= @varMaximumAverageAmount)
 END;
-`
+```
+
+## 2. Claim Handling and Publish Order
+```
+SELECT ClaimNumber, ClaimantID, ExaminerCode, PublishedDate,
+    ROW_NUMBER() OVER (PARTITION BY ClaimantID ORDER BY PublishedDate ASC) AS PublishOrder,
+    LAG(PublishedDate) OVER (PARTITION BY ClaimNumber ORDER BY PublishedDate) AS PreviousPublishedDate,
+    CASE WHEN TRY_CONVERT(DATE, LastAssignedDate) <= TRY_CONVERT(DATE, InitialProcessDate) THEN 1 ELSE 0 END AS HandledFromStartFlag
+FROM ClaimLog
+WHERE PublishedDate >= LastAssignedDate;
+
+```
+
+## 3. Using LAG() to Track Examiner Changes
+```
+SELECT ExaminerCode, PreviousExaminer,
+    CASE WHEN ExaminerCode = PreviousExaminer THEN 'Handled from Start' ELSE 'Transferred' END AS Status
+FROM (
+    SELECT ExaminerCode,
+        LAG(ExaminerCode) OVER (PARTITION BY ClaimNumber ORDER BY PublishedDate) AS PreviousExaminer
+    FROM ClaimLog
+) AS ExamLog;
+
+```
+## 4. Using ROW_NUMBER() for Ranking
+```
+SELECT ClaimNumber, PublishedDate,
+    ROW_NUMBER() OVER (PARTITION BY ClaimNumber ORDER BY PublishedDate DESC) AS Rank
+FROM ClaimLog;
+```
