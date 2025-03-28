@@ -11,3 +11,26 @@ Projects
      -Uses PIVOT to transform reserve types into separate columns.
      -Applies business rules for overdue/completion days and claim inclusion.
      -Ensures only relevant claims are retrieved for specified offices.
+
+
+##1. Stored Procedure: Get Negative Reserve Type
+
+	`CREATE PROCEDURE SPGetNegativeReserveType
+ @varNegativeReserveCount INT,
+ @varReserveBucket VARCHAR(20) = NULL,
+ @varMaximumAverageAmount FLOAT = NULL
+AS
+BEGIN
+    SELECT ReserveTypeID, reserveBucket, negativeReserveCount, negativeReserveAverage
+    FROM (
+        SELECT ReserveTypeID,
+            SUM(CASE WHEN ReserveAmount < 0 THEN 1 ELSE 0 END) AS negativeReserveCount,
+            AVG(CASE WHEN ReserveAmount < 0 THEN ReserveAmount ELSE NULL END) AS negativeReserveAverage
+        FROM Reserve
+        GROUP BY ReserveTypeID
+    ) AS x
+    WHERE negativeReserveCount = @varNegativeReserveCount
+        AND (@varReserveBucket IS NULL OR reserveBucket = @varReserveBucket)
+        AND (@varMaximumAverageAmount IS NULL OR negativeReserveAverage <= @varMaximumAverageAmount)
+END;
+`
